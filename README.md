@@ -9,3 +9,7 @@ The only dependency is `ncurses`. The makefile asks for `-lncursesw` but unicode
 To build, run `make`. It will drop an executable named `bbs` in the current folder.
 
 The makefile has the additional command `make run`, which just launches the program after compilation.
+
+## License
+
+The program is distributed under the MIT license. See the `LICENSE` file.
