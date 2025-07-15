@@ -46,7 +46,7 @@ void draw_screen (struct Screen *screen) {
     box(screen->win, 0, 0);
 
     mvwprintw(screen->win, 0, 1, " %s ", screen->name);
-};
+}
 
 int main() {
 
@@ -69,7 +69,7 @@ int main() {
 
     getmaxyx(stdscr, terminal_height, terminal_width);
 
-    int screen_before_error = HOME;
+    unsigned int screen_before_error = HOME;
 
     enum ActiveScreen active_screen = HOME;
     struct Screen home = {

@@ -1,11 +1,12 @@
 CC=gcc
-CFLAGS=-lncursesw
+CFLAGS=-std=c99 -pedantic -Wall -Wextra
+LIBS=-lncursesw
 EXECUTABLE=bbs
 
 all: make
 
 make:
-	$(CC) $(CFLAGS) bbs.c -o $(EXECUTABLE)
+	$(CC) $(CFLAGS) $(LIBS) bbs.c -o $(EXECUTABLE)
 
 run:
 	./$(EXECUTABLE)
