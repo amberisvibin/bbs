@@ -1,14 +1,17 @@
 #include <curses.h>
 #include <string.h>
+#include <locale.h>
 
-int terminal_width;
-int terminal_height;
+const unsigned int GETCH_TIMEOUT = 10; /* in ms */
+const unsigned int MAX_SCREENS = 2;    /* size of screens array */
+const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
 char errorMessage[60];
 
 enum Status {
-    WAITING,
-    NEED_REFRESH
+    STATUS_QUIT,
+    STATUS_WAITING,
+    STATUS_NEED_REFRESH
 };
 
 enum ActiveScreen {
@@ -19,11 +22,11 @@ enum ActiveScreen {
 struct Screen {
     char name[20];
     WINDOW *win;
-    void (*draw_screen)(struct Screen *);
+    void (*draw_screen)(struct Screen *, char *input); /* this is run about every 10ms */
 };
 
-void draw_home(struct Screen *screen)  {
-    char* banner = ""
+static void draw_home(struct Screen *screen, char *input)  {
+    static char* banner = ""
     "                 _                         _                             _   \n"
     "                 | |                       | |                           | |  \n"
     "   __ _ _ __ ___ | |__   ___ _ __ ___ _ __ | | __ _  ___ ___   _ __   ___| |_ \n"
@@ -35,34 +38,39 @@ void draw_home(struct Screen *screen)  {
 
     mvwprintw(screen->win, 1, 2, "Thank you for visiting:");
     mvwprintw(screen->win, 2, 1, "%s", banner);
+    mvwprintw(screen->win, 10, 1, "Your current input is: %s", input);
 }
 
-void draw_error(struct Screen *screen)  {
+static void draw_error(struct Screen *screen, __attribute__((unused)) char *input)  {
     mvwprintw(screen->win, 1, 2, "%s", errorMessage);
 }
 
-void draw_screen (struct Screen *screen) {
-    screen->draw_screen(screen);
+static void draw_screen (struct Screen *screen, char *input) {
+    screen->draw_screen(screen, input);
     box(screen->win, 0, 0);
-
+    // wattron(screen->win, A_STANDOUT);
     mvwprintw(screen->win, 0, 1, " %s ", screen->name);
+    // wattroff(screen->win, A_STANDOUT);
 }
 
 int main() {
 
-    initscr();   /* start ncurses */
-    noecho();    /* hide keyboard input */
-    curs_set(0); /* disable cursor */
-    timeout(10); /* set timeout for getch() to 10ms */
+    initscr();                   /* start ncurses */
+    noecho();                    /* hide keyboard input */
+    curs_set(0);                 /* disable cursor */
+    timeout(GETCH_TIMEOUT);      /* set timeout for getch() */
+    setlocale(LC_CTYPE, LOCALE); /* set locale, UTF8 support is enabled here */
 
-    int start_y = 0;
-    int start_x = 0;
-    int old_terminal_width = 0;
-    int old_terminal_height = 0;
+    unsigned int start_y = 0;
+    unsigned int start_x = 0;
+    unsigned int terminal_width;
+    unsigned int terminal_height;
+    unsigned int old_terminal_width = 0;
+    unsigned int old_terminal_height = 0;
 
-    struct Screen screens[5];
+    struct Screen screens[MAX_SCREENS];
 
-    enum Status status = NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
+    enum Status status = STATUS_NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
     char input = ' ';
 
     strcpy(errorMessage, "");
@@ -86,9 +94,14 @@ int main() {
     screens[ERROR] = error;
 
     /* main event loop */
-    while (input != 'q') {
+    while (status != STATUS_QUIT) {
         if ((input = getch())) { /* if any input was read */
-            status = NEED_REFRESH;
+            /* TODO: factor out input to another function */
+            if (input == 'q') {
+                status = STATUS_QUIT;
+            } else {
+                status = STATUS_NEED_REFRESH;
+            };
         };
         getmaxyx(stdscr, terminal_height, terminal_width);
 
@@ -110,21 +123,21 @@ int main() {
             } else if (active_screen != screen_before_error) {
                 active_screen = screen_before_error;
             };
-            status = NEED_REFRESH;
+            status = STATUS_NEED_REFRESH;
         };
 
         /* refresh active screen's window */
-        if (status == NEED_REFRESH) {
-            draw_screen(&screens[active_screen]);
+        if (status == STATUS_NEED_REFRESH) {
+            draw_screen(&screens[active_screen], &input);
             wrefresh(screens[active_screen].win);
-            status = WAITING;
+            status = STATUS_WAITING;
         }
 
     };
 
+    /* clean up */
     delwin(screens[active_screen].win);
-    nocbreak(); /* cbreak is the not needing to press enter on input, gets set in initscr, not undoing it causes
-                   printing errors after exit as this is a setting of the terminal itself */
+    nocbreak();
     endwin();   /* ends curses mode */
     curs_set(1);
     echo();
