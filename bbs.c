@@ -5,16 +5,12 @@
 #include <locale.h>
 
 #include "globals.h"
-#include "home.h"
+#include "screens.h"
 
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
 const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
 char error_message[MAX_ERROR_MESSAGE_SIZE];
-
-static void draw_error(struct Screen *screen, __attribute__((unused)) char *input)  {
-    mvwprintw(screen->win, 1, 2, "%s", error_message);
-}
 
 static void draw_screen (struct Screen *screen, char *input) {
     screen->draw_screen(screen, input);
@@ -48,31 +44,9 @@ int main() {
 
     enum ActiveScreen active_screen = HOME;
 
-    struct Screen screens[] = {
-        {
-            "home",
-            newwin(terminal_height, terminal_width, 0, 0),
-            draw_home
-        },
-        {
-            "error",
-            newwin(terminal_height, terminal_width, 0, 0),
-            draw_error
-        }
-    };
-
-    // struct Screen home = {
-    //     "home",
-    //     newwin(terminal_height, terminal_width, start_y, start_x),
-    //     draw_home
-    // };
-    // screens[HOME] = home;
-    // struct Screen error = {
-    //     "error",
-    //     newwin(terminal_height, terminal_width, start_y, start_x),
-    //     draw_error
-    // };
-    // screens[ERROR] = error;
+    /* could be it's own init func within the screen's file. */
+    screens[HOME].win = newwin(terminal_height, terminal_width, 0, 0);
+    screens[ERROR].win = newwin(terminal_height, terminal_width, 0, 0);
 
     /* main event loop */
     while (status != STATUS_QUIT) {

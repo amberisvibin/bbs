@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 
 #include <curses.h>
-#include "globals.h"
+#include "screens.h"
 
 void draw_home(struct Screen *screen, char *input)  {
     static char* banner = ""
