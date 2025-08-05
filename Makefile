@@ -1,18 +1,17 @@
+# SPDX-License-Identifier: MIT
+
 CC=gcc
 CFLAGS=-std=c99 -pedantic -Wall -Wextra -O2 -ggdb
 LIBS=-lncursesw
 EXECUTABLE=bbs
 
-.PHONY: all
-all: make
+# .PHONY: all
+# all: make
 
+make: bbs
 
-make:
-	$(CC) $(CFLAGS) $(LIBS) bbs.c -o $(EXECUTABLE)
+bbs: bbs.c home.c home.h globals.h
+	$(CC) $(CFLAGS) $(LIBS) bbs.c home.c -o $(EXECUTABLE)
 
-.PHONY: execute
-execute:
+run: bbs
 	./$(EXECUTABLE)
-
-.PHONY: run
-run: make execute

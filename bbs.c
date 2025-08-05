@@ -4,46 +4,15 @@
 #include <string.h>
 #include <locale.h>
 
+#include "globals.h"
+#include "home.h"
+
 #define MAX_ERROR_MESSAGE_SIZE 60      /* size of error_message array */
-#define MAX_SCREENS 2                  /* size of screens array */
 
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
 const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
 char error_message[MAX_ERROR_MESSAGE_SIZE];
-
-enum Status {
-    STATUS_QUIT,
-    STATUS_WAITING,
-    STATUS_NEED_REFRESH
-};
-
-enum ActiveScreen {
-    HOME,
-    ERROR
-};
-
-struct Screen {
-    char name[20];
-    WINDOW *win;
-    void (*draw_screen)(struct Screen *, char *input); /* GETCH_TIMEOUT determines how often this is run, in ms */
-};
-
-static void draw_home(struct Screen *screen, char *input)  {
-    static char* banner = ""
-    "                 _                         _                             _   \n"
-    "                 | |                       | |                           | |  \n"
-    "   __ _ _ __ ___ | |__   ___ _ __ ___ _ __ | | __ _  ___ ___   _ __   ___| |_ \n"
-    "  / _` | '_ ` _ \\| '_ \\ / _ \\ '__/ __| '_ \\| |/ _` |/ __/ _ \\ | '_ \\ / _ \\ __|\n"
-    " | (_| | | | | | | |_) |  __/ |  \\__ \\ |_) | | (_| | (_|  __/_| | | |  __/ |_ \n"
-    "  \\__,_|_| |_| |_|_.__/ \\___|_|  |___/ .__/|_|\\__,_|\\___\\___(_)_| |_|\\___|\\__|\n"
-    "                                     | |                                      \n"
-    "                                     |_|                                      \n";
-
-    mvwprintw(screen->win, 1, 2, "Thank you for visiting:");
-    mvwprintw(screen->win, 2, 1, "%s", banner);
-    mvwprintw(screen->win, 10, 1, "Your current input is: %s", input);
-}
 
 static void draw_error(struct Screen *screen, __attribute__((unused)) char *input)  {
     mvwprintw(screen->win, 1, 2, "%s", error_message);
@@ -72,7 +41,7 @@ int main() {
     unsigned int old_terminal_width = 0;
     unsigned int old_terminal_height = 0;
 
-    struct Screen screens[MAX_SCREENS];
+    // struct Screen screens[MAX_SCREENS];
 
     enum Status status = STATUS_NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
     char input = ' ';
@@ -140,7 +109,7 @@ int main() {
     };
 
     /* clean up */
-    delwin(screens[active_screen].win);
+    delwin(screens[active_screen].win); /* TODO: delete all windows in screens[] */
     nocbreak();
     endwin();   /* ends curses mode */
     curs_set(1);
