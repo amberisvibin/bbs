@@ -1,17 +1,37 @@
 # SPDX-License-Identifier: MIT
 
-CC=gcc
-CFLAGS=-std=c99 -pedantic -Wall -Wextra -O2 -ggdb
-LIBS=-lncursesw
-EXECUTABLE=bbs
+# Makefile for Amber's BBS Interface
+# Buildsys by Gale Faraday
 
-# .PHONY: all
-# all: make
+.PHONY: all clean run
+.SUFFIXES:
 
-make: bbs
+.DEFAULT_GOAL := all
 
-bbs: bbs.c home.c home.h globals.h
-	$(CC) $(CFLAGS) $(LIBS) bbs.c home.c -o $(EXECUTABLE)
+TARGET     := $(shell basename $(CURDIR))
+SOURCES    := src/
+BUILD      := build/
+OBJS       := $(patsubst $(SOURCES)%.c,$(BUILD)%.o,$(wildcard $(SOURCES)*.c))
+EXECUTABLE := $(TARGET)
 
-run: bbs
+
+CC      := gcc
+LD      := gcc
+CFLAGS  := -std=c99 -pedantic -Wall -Wextra -O2 -ggdb
+LDFLAGS := $(CFLAGS) -lncursesw
+
+all: $(EXECUTABLE)
+
+run: $(EXECUTABLE)
 	./$(EXECUTABLE)
+
+.IGNORE: clean
+clean:
+	@rm -rvf $(BUILD) $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $^
+
+$(OBJS): $(BUILD)%.o : $(SOURCES)%.c
+	-@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -o $@ -c $<
