@@ -1,12 +1,16 @@
+/* SPDX-License-Identifier: MIT */
+
 #include <curses.h>
 #include <string.h>
 #include <locale.h>
 
+#define MAX_ERROR_MESSAGE_SIZE 60      /* size of error_message array */
+#define MAX_SCREENS 2                  /* size of screens array */
+
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
-const unsigned int MAX_SCREENS = 2;    /* size of screens array */
 const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
-char errorMessage[60];
+char error_message[MAX_ERROR_MESSAGE_SIZE];
 
 enum Status {
     STATUS_QUIT,
@@ -22,7 +26,7 @@ enum ActiveScreen {
 struct Screen {
     char name[20];
     WINDOW *win;
-    void (*draw_screen)(struct Screen *, char *input); /* this is run about every 10ms */
+    void (*draw_screen)(struct Screen *, char *input); /* GETCH_TIMEOUT determines how often this is run, in ms */
 };
 
 static void draw_home(struct Screen *screen, char *input)  {
@@ -42,15 +46,15 @@ static void draw_home(struct Screen *screen, char *input)  {
 }
 
 static void draw_error(struct Screen *screen, __attribute__((unused)) char *input)  {
-    mvwprintw(screen->win, 1, 2, "%s", errorMessage);
+    mvwprintw(screen->win, 1, 2, "%s", error_message);
 }
 
 static void draw_screen (struct Screen *screen, char *input) {
     screen->draw_screen(screen, input);
     box(screen->win, 0, 0);
-    // wattron(screen->win, A_STANDOUT);
+    /* wattron(screen->win, A_STANDOUT); */
     mvwprintw(screen->win, 0, 1, " %s ", screen->name);
-    // wattroff(screen->win, A_STANDOUT);
+    /* wattroff(screen->win, A_STANDOUT); */
 }
 
 int main() {
@@ -73,7 +77,7 @@ int main() {
     enum Status status = STATUS_NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
     char input = ' ';
 
-    strcpy(errorMessage, "");
+    strcpy(error_message, "");
 
     getmaxyx(stdscr, terminal_height, terminal_width);
 
@@ -116,7 +120,7 @@ int main() {
 
             if (terminal_width < 80 || terminal_height < 24) {
                 if (active_screen != ERROR) {
-                    strcpy(errorMessage, "This program expects at least 80 rows by 24 columns.");
+                    strcpy(error_message, "This program expects at least 80 rows by 24 columns.");
                     screen_before_error = active_screen;
                 };
                 active_screen = ERROR;
