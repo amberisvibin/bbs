@@ -1,56 +1,23 @@
+/* SPDX-License-Identifier: MIT */
+
 #include <curses.h>
 #include <string.h>
 #include <locale.h>
 
+#include "globals.h"
+#include "screens.h"
+
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
-const unsigned int MAX_SCREENS = 2;    /* size of screens array */
 const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
-char errorMessage[60];
-
-enum Status {
-    STATUS_QUIT,
-    STATUS_WAITING,
-    STATUS_NEED_REFRESH
-};
-
-enum ActiveScreen {
-    HOME,
-    ERROR
-};
-
-struct Screen {
-    char name[20];
-    WINDOW *win;
-    void (*draw_screen)(struct Screen *, char *input); /* this is run about every 10ms */
-};
-
-static void draw_home(struct Screen *screen, char *input)  {
-    static char* banner = ""
-    "                 _                         _                             _   \n"
-    "                 | |                       | |                           | |  \n"
-    "   __ _ _ __ ___ | |__   ___ _ __ ___ _ __ | | __ _  ___ ___   _ __   ___| |_ \n"
-    "  / _` | '_ ` _ \\| '_ \\ / _ \\ '__/ __| '_ \\| |/ _` |/ __/ _ \\ | '_ \\ / _ \\ __|\n"
-    " | (_| | | | | | | |_) |  __/ |  \\__ \\ |_) | | (_| | (_|  __/_| | | |  __/ |_ \n"
-    "  \\__,_|_| |_| |_|_.__/ \\___|_|  |___/ .__/|_|\\__,_|\\___\\___(_)_| |_|\\___|\\__|\n"
-    "                                     | |                                      \n"
-    "                                     |_|                                      \n";
-
-    mvwprintw(screen->win, 1, 2, "Thank you for visiting:");
-    mvwprintw(screen->win, 2, 1, "%s", banner);
-    mvwprintw(screen->win, 10, 1, "Your current input is: %s", input);
-}
-
-static void draw_error(struct Screen *screen, __attribute__((unused)) char *input)  {
-    mvwprintw(screen->win, 1, 2, "%s", errorMessage);
-}
+char error_message[MAX_ERROR_MESSAGE_SIZE];
 
 static void draw_screen (struct Screen *screen, char *input) {
     screen->draw_screen(screen, input);
     box(screen->win, 0, 0);
-    // wattron(screen->win, A_STANDOUT);
+    /* wattron(screen->win, A_STANDOUT); */
     mvwprintw(screen->win, 0, 1, " %s ", screen->name);
-    // wattroff(screen->win, A_STANDOUT);
+    /* wattroff(screen->win, A_STANDOUT); */
 }
 
 int main() {
@@ -61,37 +28,25 @@ int main() {
     timeout(GETCH_TIMEOUT);      /* set timeout for getch() */
     setlocale(LC_CTYPE, LOCALE); /* set locale, UTF8 support is enabled here */
 
-    unsigned int start_y = 0;
-    unsigned int start_x = 0;
     unsigned int terminal_width;
     unsigned int terminal_height;
     unsigned int old_terminal_width = 0;
     unsigned int old_terminal_height = 0;
 
-    struct Screen screens[MAX_SCREENS];
-
     enum Status status = STATUS_NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
     char input = ' ';
 
-    strcpy(errorMessage, "");
+    strcpy(error_message, "");
 
     getmaxyx(stdscr, terminal_height, terminal_width);
 
     unsigned int screen_before_error = HOME;
 
     enum ActiveScreen active_screen = HOME;
-    struct Screen home = {
-        "home",
-        newwin(terminal_height, terminal_width, start_y, start_x),
-        draw_home
-    };
-    screens[HOME] = home;
-    struct Screen error = {
-        "error",
-        newwin(terminal_height, terminal_width, start_y, start_x),
-        draw_error
-    };
-    screens[ERROR] = error;
+
+    /* could be it's own init func within the screen's file. */
+    screens[HOME].win = newwin(terminal_height, terminal_width, 0, 0);
+    screens[ERROR].win = newwin(terminal_height, terminal_width, 0, 0);
 
     /* main event loop */
     while (status != STATUS_QUIT) {
@@ -116,7 +71,7 @@ int main() {
 
             if (terminal_width < 80 || terminal_height < 24) {
                 if (active_screen != ERROR) {
-                    strcpy(errorMessage, "This program expects at least 80 rows by 24 columns.");
+                    strcpy(error_message, "This program expects at least 80 rows by 24 columns.");
                     screen_before_error = active_screen;
                 };
                 active_screen = ERROR;
@@ -136,7 +91,7 @@ int main() {
     };
 
     /* clean up */
-    delwin(screens[active_screen].win);
+    delwin(screens[active_screen].win); /* TODO: delete all windows in screens[] */
     nocbreak();
     endwin();   /* ends curses mode */
     curs_set(1);
