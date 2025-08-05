@@ -7,8 +7,6 @@
 #include "globals.h"
 #include "home.h"
 
-#define MAX_ERROR_MESSAGE_SIZE 60      /* size of error_message array */
-
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
 const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
@@ -34,14 +32,10 @@ int main() {
     timeout(GETCH_TIMEOUT);      /* set timeout for getch() */
     setlocale(LC_CTYPE, LOCALE); /* set locale, UTF8 support is enabled here */
 
-    unsigned int start_y = 0;
-    unsigned int start_x = 0;
     unsigned int terminal_width;
     unsigned int terminal_height;
     unsigned int old_terminal_width = 0;
     unsigned int old_terminal_height = 0;
-
-    // struct Screen screens[MAX_SCREENS];
 
     enum Status status = STATUS_NEED_REFRESH; /* refresh screens[active_screen].window on first loop */
     char input = ' ';
@@ -53,18 +47,32 @@ int main() {
     unsigned int screen_before_error = HOME;
 
     enum ActiveScreen active_screen = HOME;
-    struct Screen home = {
-        "home",
-        newwin(terminal_height, terminal_width, start_y, start_x),
-        draw_home
+
+    struct Screen screens[] = {
+        {
+            "home",
+            newwin(terminal_height, terminal_width, 0, 0),
+            draw_home
+        },
+        {
+            "error",
+            newwin(terminal_height, terminal_width, 0, 0),
+            draw_error
+        }
     };
-    screens[HOME] = home;
-    struct Screen error = {
-        "error",
-        newwin(terminal_height, terminal_width, start_y, start_x),
-        draw_error
-    };
-    screens[ERROR] = error;
+
+    // struct Screen home = {
+    //     "home",
+    //     newwin(terminal_height, terminal_width, start_y, start_x),
+    //     draw_home
+    // };
+    // screens[HOME] = home;
+    // struct Screen error = {
+    //     "error",
+    //     newwin(terminal_height, terminal_width, start_y, start_x),
+    //     draw_error
+    // };
+    // screens[ERROR] = error;
 
     /* main event loop */
     while (status != STATUS_QUIT) {
