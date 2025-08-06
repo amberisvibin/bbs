@@ -1,2 +1,5 @@
 bbs
 build/
+
+# Machine generated files:
+src/version.c
