@@ -8,7 +8,6 @@
 #include "screens.h"
 
 const unsigned int GETCH_TIMEOUT = 10; /* in ms */
-const char* LOCALE = "en_US.UTF-8";    /* enable unicode support, set to "ANSI_X3.4-1968" for ascii */
 
 char error_message[MAX_ERROR_MESSAGE_SIZE];
 
@@ -26,7 +25,7 @@ int main() {
     noecho();                    /* hide keyboard input */
     curs_set(0);                 /* disable cursor */
     timeout(GETCH_TIMEOUT);      /* set timeout for getch() */
-    setlocale(LC_CTYPE, LOCALE); /* set locale, UTF8 support is enabled here */
+    setlocale(LC_CTYPE, ""); /* set locale, UTF8 support is enabled here */
 
     unsigned int terminal_width;
     unsigned int terminal_height;
