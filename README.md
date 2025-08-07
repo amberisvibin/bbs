@@ -6,7 +6,9 @@ This is a simple bbs program written in c. The way it is meant to work is that a
 
 `bbs` depends only upon `ncurses`. 
 
-`make` builds the program, `make run` will make and then run the program, and `make clean` will clean up the build directory.
+Run `make generate` to generate `version.c`, then make to build. Build files will be in `build/` and the executable `bbs` will be in the root of the repo. 
+
+`make run` will build and run the program, and `make clean` will clean up the `build/` directory.
 
 ## License
 
