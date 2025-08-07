@@ -2,6 +2,7 @@
 
 #include <curses.h>
 #include "screens.h"
+#include "version.h"
 
 void draw_home(struct Screen *screen, char *input)  {
     static char* banner = ""
@@ -17,4 +18,8 @@ void draw_home(struct Screen *screen, char *input)  {
     mvwprintw(screen->win, 1, 2, "Thank you for visiting:");
     mvwprintw(screen->win, 2, 1, "%s", banner);
     mvwprintw(screen->win, 10, 1, "Your current input is: %s", input);
+    mvwprintw(screen->win, 11, 1, "Git hash: %s", GIT_HASH);
+    mvwprintw(screen->win, 12, 1, "Git tag: %s", GIT_TAG);
+    mvwprintw(screen->win, 13, 1, "CC version: %s", CC_VERSION);
+    mvwprintw(screen->win, 14, 1, "Build date: %s", BUILD_DATE);
 }
