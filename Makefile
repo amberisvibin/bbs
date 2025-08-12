@@ -21,7 +21,7 @@ EXECUTABLE := $(TARGET)
 
 CC      := gcc
 LD      := gcc
-CFLAGS  := -std=c99 -pedantic -Wall -Wextra -O2 -ggdb
+CFLAGS  := -std=c99 -pedantic -Wall -Wextra -Wno-unused-parameter -O2 -ggdb
 LDFLAGS := $(CFLAGS) -lncurses
 
 all: $(EXECUTABLE)

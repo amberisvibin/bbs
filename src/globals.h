@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: MIT */
 
+#define GETCH_TIMEOUT 10          /* in ms */
 #define MAX_SCREEN_NAME_SIZE 20   /* size of the screen name array */
 #define MAX_ERROR_MESSAGE_SIZE 60 /* size of error_message array */
 
